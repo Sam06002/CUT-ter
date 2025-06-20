@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSV/XLSX File Splitter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4a6bdf;
+      --primary-hover: #3a5bd9;
+      --bg-color: #f5f7fa;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --text-light: #666666;
+      --border-color: #e0e0e0;
+      --success-color: #28a745;
+      --error-color: #dc3545;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 30px;
+      margin: 20px 0;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .header p {
+      color: var(--text-light);
+      font-size: 1.1em;
+    }
+
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-area:hover {
+      border-color: var(--primary-color);
+      background-color: rgba(74, 107, 223, 0.05);
+    }
+
+    .upload-area i {
+      font-size: 48px;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    .upload-area p {
+      margin-bottom: 15px;
+      color: var(--text-light);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: var(--transition);
+      text-decoration: none;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn i {
+      margin-right: 8px;
+    }
+
+    .progress-container {
+      width: 100%;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      margin: 20px 0;
+      display: none;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background-color: var(--primary-color);
+      width: 0%;
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    .file-info {
+      margin: 15px 0;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: var(--border-radius);
+      display: none;
+    }
+
+    .file-info p {
+      margin: 5px 0;
+      color: var(--text-light);
+    }
+
+    .file-info .file-name {
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    .result {
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .result.success {
+      color: var(--success-color);
+    }
+
+    .result.error {
+      color: var(--error-color);
+    }
+
+    .download-btn {
+      margin-top: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .download-btn i {
+      margin-right: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+      
+      .header h1 {
+        font-size: 1.8em;
+      }
+      
+      .btn {
+        width: 100%;
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-file-export"></i> File Splitter</h1>
+      <p>Split your CSV or Excel files into smaller chunks for easier processing</p>
+    </div>
+    
+    <div class="upload-area" id="dropZone">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <h3>Drag & Drop your file here</h3>
+      <p>or</p>
+      <label for="fileInput" class="btn">
+        <i class="fas fa-folder-open"></i> Browse Files
+      </label>
+      <input type="file" id="fileInput" class="file-input" accept=".csv, .xlsx" />
+      <p class="file-format">Supports: .CSV, .XLSX (Max 50MB)</p>
+    </div>
+    
+    <div class="file-info" id="fileInfo">
+      <p><strong>Selected File:</strong> <span class="file-name" id="fileName"></span></p>
+      <p><strong>File Size:</strong> <span id="fileSize"></span></p>
+    </div>
+    
+    <div class="options" style="margin: 20px 0;">
+      <label for="chunkSize" style="display: block; margin-bottom: 8px; font-weight: 500;">Rows per file:</label>
+      <input type="number" id="chunkSize" value="4999" min="1" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+    </div>
+    
+    <button id="splitButton" class="btn" disabled>
+      <i class="fas fa-cut"></i> Split File
+    </button>
+    
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="result" id="result"></div>
+    
+    <div id="downloadLink"></div>
+  </div>
+
+  <!-- Dependencies: JSZip for ZIP creation, SheetJS for XLSX parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    // DOM Elements
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const splitButton = document.getElementById('splitButton');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const result = document.getElementById('result');
+    const downloadLink = document.getElementById('downloadLink');
+    const chunkSizeInput = document.getElementById('chunkSize');
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, preventDefaults, false);
+      document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    // Highlight drop zone when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    // Handle dropped files
+    dropZone.addEventListener('drop', handleDrop, false);
+    
+    // Handle file input change
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Handle split button click
+    splitButton.addEventListener('click', processFile);
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function highlight() {
+      dropZone.style.borderColor = '#4a6bdf';
+      dropZone.style.backgroundColor = 'rgba(74, 107, 223, 0.1)';
+    }
+
+    function unhighlight() {
+      dropZone.style.borderColor = '#e0e0e0';
+      dropZone.style.backgroundColor = '';
+    }
+
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    }
+
+    function handleFileSelect() {
+      handleFiles(this.files);
+    }
+
+    function handleFiles(files) {
+      if (files.length > 0) {
+        const file = files[0];
+        updateFileInfo(file);
+      }
+    }
+
+
+    function updateFileInfo(file) {
+      if (!file) return;
+      
+      // Validate file type
+      const validTypes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+      const fileType = file.type;
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      
+      if (!validTypes.includes(fileType) && !['csv', 'xlsx'].includes(fileExt)) {
+        showError('Please select a valid CSV or XLSX file');
+        return;
+      }
+      
+      // Update UI
+      fileName.textContent = file.name;
+      fileSize.textContent = formatFileSize(file.size);
+      fileInfo.style.display = 'block';
+      splitButton.disabled = false;
+      
+      // Reset previous state
+      result.style.display = 'none';
+      downloadLink.innerHTML = '';
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function showError(message) {
+      result.textContent = message;
+      result.className = 'result error';
+      result.style.display = 'block';
+    }
+
+    function showSuccess(message) {
+      result.textContent = message;
+      result.className = 'result success';
+      result.style.display = 'block';
+    }
+
+    function updateProgress(percent) {
+      progressBar.style.width = `${percent}%`;
+    }
+
+    async function processFile() {
+      const file = fileInput.files[0];
+      if (!file) {
+        showError('Please select a file first');
+        return;
+      }
+
+      // Reset UI
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      result.style.display = 'none';
+      downloadLink.innerHTML = '';
+      splitButton.disabled = true;
+      
+      try {
+        // Get chunk size from input
+        const chunkSize = parseInt(chunkSizeInput.value) || 4999;
+        
+        // Process the file
+        let text;
+        updateProgress(10);
+        
+        // Read file contents
+        showStatus('Reading file...');
+        
+        if (file.name.endsWith('.xlsx')) {
+          // Handle Excel file
+          const arrayBuffer = await file.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+          
+          if (workbook.SheetNames.length === 0) {
+            throw new Error('No sheets found in the Excel file');
+          }
+          
+          const firstSheetName = workbook.SheetNames[0];
+          text = XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheetName]);
+        } else {
+          // Handle CSV file
+          text = await file.text();
+        }
+        
+        if (!text || text.trim() === '') {
+          throw new Error('File is empty or could not be read');
+        }
+        
+        updateProgress(30);
+        
+        // Split the file
+        showStatus('Splitting file...');
+        const lines = text.split(/\r?\n/);
+        
+        if (lines.length < 2) {
+          throw new Error('File must have a header row and at least one data row');
+        }
+        
+        const header = lines[0];
+        const dataLines = lines.slice(1).filter(line => line.trim() !== '');
+        const totalRows = dataLines.length;
+        const totalChunks = Math.ceil(totalRows / chunkSize);
+        
+        if (totalChunks === 0) {
+          throw new Error('No data rows found in the file');
+        }
+        
+        const zip = new JSZip();
+        let processedChunks = 0;
+        
+        // Process chunks with progress updates
+        for (let i = 0; i < totalRows; i += chunkSize) {
+          const chunk = dataLines.slice(i, i + chunkSize);
+          const content = [header, ...chunk].join('\n');
+          zip.file(`part_${Math.floor(i/chunkSize) + 1}.csv`, content);
+          
+          // Update progress
+          processedChunks++;
+          const progress = 30 + Math.floor((processedChunks / totalChunks) * 65);
+          updateProgress(progress);
+          showStatus(`Processing chunk ${processedChunks} of ${totalChunks}...`);
+          
+          // Allow UI to update
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+        
+        // Generate ZIP file
+        showStatus('Creating ZIP archive...');
+        updateProgress(95);
+        
+        const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+        const zipFilename = `split_files_${timestamp}.zip`;
+        
+        const blob = await zip.generateAsync(
+          { 
+            type: 'blob',
+            compression: 'DEFLATE',
+            compressionOptions: { level: 6 } 
+          },
+          metadata => {
+            const progress = 95 + Math.floor((metadata.percent / 100) * 5);
+            updateProgress(progress);
+          }
+        );
+        
+        updateProgress(100);
+        showStatus('Done!');
+        
+        // Create a Blob URL with the correct MIME type
+        const blobUrl = URL.createObjectURL(new Blob(
+          [blob], 
+          { type: 'application/zip' }
+        ));
+        
+        // Create download link with proper attributes
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = zipFilename;
+        link.className = 'btn download-btn';
+        link.innerHTML = '<i class="fas fa-download"></i> Download Split Files';
+        
+        // Add click event to revoke the blob URL after download starts
+        link.addEventListener('click', function() {
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        }, { once: true });
+        
+        // Add right-click save as support
+        link.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          const tempLink = document.createElement('a');
+          tempLink.href = blobUrl;
+          tempLink.download = zipFilename;
+          tempLink.click();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+        }, { once: true });
+        
+        downloadLink.innerHTML = '';
+        downloadLink.appendChild(link);
+        
+        // Auto-click the download link after a short delay
+        setTimeout(() => {
+          link.click();
+        }, 100);
+        
+        showSuccess(`Successfully split file into ${totalChunks} parts`);
+        
+      } catch (error) {
+        console.error('Error processing file:', error);
+        showError(`Error: ${error.message || 'Failed to process file'}`);
+      } finally {
+        splitButton.disabled = false;
+      }
+    }
+    
+    function showStatus(message) {
+      result.textContent = message;
+      result.className = 'result';
+      result.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
