@@ -1,46 +1,56 @@
 # CUT-ter
 
-A web application for splitting customer import files into smaller chunks for easier processing.
+A web application for splitting Excel files with many columns into smaller, more manageable files.
 
 ## Features
-- Upload and process customer data files
-- Split large files into smaller, manageable chunks
+- Upload and process Excel files with many columns
+- Split large files into smaller chunks based on column count
 - Simple and intuitive web interface
-- Built with Python and Flask
+- Built with Python and Streamlit
+- Deployable to Streamlit Community Cloud
+
+## Demo
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://cut-ter.streamlit.app/)
 
 ## Requirements
-- Python 3.x
-- Flask
-- Other dependencies listed in requirements.txt
+- Python 3.8+
+- Streamlit
+- Pandas
+- OpenPyXL
 
-## Installation
+## Local Installation
 1. Clone the repository
 2. Install the required packages:
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
-3. Run the application:
+3. Run the Streamlit app:
+   ```bash
+   streamlit run streamlit_app.py
    ```
-   python app.py
-   ```
-4. Open your browser and navigate to `http://localhost:5000`
+4. The app will open automatically in your default web browser
 
 ## Usage
-1. Click on "Choose File" to select your customer import file
-2. Click "Upload" to process the file
-3. The application will split the file into smaller chunks
-4. Download the split files from the "Download" section
+1. Click "Browse files" to select your Excel file (supports .xlsx and .xls)
+2. Set the maximum number of columns per file (default is 4900)
+3. Click "Process File" to split the Excel file
+4. Download individual files or all files as a ZIP archive
 
 ## Project Structure
-- `app.py` - Main application file
-- `script.py` - Core file processing logic
-- `importcustomer_splitter.html` - Web interface
+- `streamlit_app.py` - Main Streamlit application
+- `script.py` - Core file processing logic (legacy)
 - `requirements.txt` - Python dependencies
-- `uploads/` - Directory for uploaded files
-- `split_files/` - Directory for processed file chunks
+- `README.md` - This file
+
+## Deployment to Streamlit Community Cloud
+1. Push your code to a GitHub repository
+2. Go to [Streamlit Community Cloud](https://share.streamlit.io/)
+3. Click "New app" and connect your GitHub repository
+4. Select the repository and specify `streamlit_app.py` as the main file
+5. Click "Deploy!"
 
 ## License
 This project is open source and available under the MIT License.
 
 ---
-Made by Sane
+Made with ❤️ by Sane
